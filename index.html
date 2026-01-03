@@ -581,13 +581,12 @@
                     <div class="control-group">
                         <span class="control-label">Period:</span>
                         <select id="viewType" onchange="changeViewType()">
-                            <option value="ytd">Year to Date 2025</option>
                             <option value="monthly">Monthly View</option>
                             <option value="yearly">Yearly View</option>
                         </select>
                     </div>
                     
-                    <div class="control-group" id="monthPicker" style="display: none;">
+                    <div class="control-group" id="monthPicker">
                         <span class="control-label">Month:</span>
                         <select id="monthSelect" onchange="filterAndDisplay()">
                             <option value="0">January</option>
@@ -670,10 +669,27 @@
             </div>
         </div>
 
+        <!-- Section 3.5: Drive Time Analysis -->
+        <div class="section">
+            <div class="section-title">🚗 Drive Time Analysis</div>
+            <div class="chart-container">
+                <canvas id="driveTimeChart"></canvas>
+            </div>
+        </div>
+
         <!-- Section 4: Client Profitability Analysis -->
         <div class="section">
             <div class="section-title">👥 Client Profitability Analysis</div>
             <div id="lastUpdate" style="margin-bottom:15px;color:var(--text-light);font-weight:600;"></div>
+            <div style="margin-bottom:20px;">
+                <label style="font-weight:600;margin-right:10px;">Filter by Profitability:</label>
+                <select id="profitabilityFilter" onchange="displayClientProfitability()" style="padding:8px 12px;border-radius:6px;border:2px solid var(--border-color);">
+                    <option value="all">All Clients</option>
+                    <option value="most">💎 Most Profitable</option>
+                    <option value="good">✓ Good</option>
+                    <option value="least">⚠️ Least Profitable</option>
+                </select>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>
@@ -712,6 +728,7 @@
                             <th>Total Revenue</th>
                             <th>% of Total</th>
                             <th>Jobs</th>
+                            <th>Time Spent</th>
                             <th>Avg Job Value</th>
                             <th>
                                 Efficiency Rate
@@ -859,7 +876,9 @@
         let allCostAnalysisData = [];
         let costAnalysisData = [];
         let serviceRevenueChart = null;
-        let currentView = 'ytd';
+        let driveTimeChart = null;
+        let currentView = 'monthly';
+        let currentPeriodLabel = '';
 
         // Modal Functions
         function openModal(modalId) {
@@ -888,14 +907,17 @@
 
         function initializePickers() {
             const yearSelect = document.getElementById('yearSelect');
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth();
+            
             for (let year = 2020; year <= 2026; year++) {
                 const option = document.createElement('option');
                 option.value = year;
                 option.textContent = year;
-                if (year === 2025) option.selected = true;
+                if (year === currentYear) option.selected = true;
                 yearSelect.appendChild(option);
             }
-            document.getElementById('monthSelect').value = 11;
+            document.getElementById('monthSelect').value = currentMonth;
         }
 
         function changeViewType() {
@@ -904,6 +926,22 @@
             if (allCostAnalysisData.length > 0) {
                 filterAndDisplay();
             }
+        }
+
+        function getCurrentPeriodLabel() {
+            const view = document.getElementById('viewType').value;
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            if (view === 'monthly') {
+                const month = parseInt(document.getElementById('monthSelect').value);
+                const year = document.getElementById('yearSelect').value;
+                return `${monthNames[month]} ${year}`;
+            } else if (view === 'yearly') {
+                const year = document.getElementById('yearSelect').value;
+                return `Year ${year}`;
+            }
+            return '';
         }
 
         function setRefreshInterval() {
@@ -1088,13 +1126,7 @@
         function filterDataByDateRange(data) {
             const view = document.getElementById('viewType').value;
             
-            if (view === 'ytd') {
-                return data.filter(row => {
-                    const dateStr = row['Job Date'] || '';
-                    const date = parseDate(dateStr);
-                    return date && date.getFullYear() === 2025;
-                });
-            } else if (view === 'monthly') {
+            if (view === 'monthly') {
                 const month = parseInt(document.getElementById('monthSelect').value);
                 const year = parseInt(document.getElementById('yearSelect').value);
                 return data.filter(row => {
@@ -1114,13 +1146,15 @@
         }
 
         function displayAllSections() {
+            currentPeriodLabel = getCurrentPeriodLabel();
             displayOperationsSummary();
             displayKPIMetrics();
             displaySalesMetrics();
             displayServiceRevenueChart();
+            displayDriveTimeChart();
             displayClientProfitability();
             displayServicePerformance();
-            document.getElementById('lastUpdate').textContent = `📅 Last updated: ${new Date().toLocaleString()}`;
+            document.getElementById('lastUpdate').textContent = `📅 Last updated: ${new Date().toLocaleString()} | Viewing: ${currentPeriodLabel}`;
         }
 
         function displayOperationsSummary() {
@@ -1254,6 +1288,7 @@
                     <div class="metric-value">${formatPercent(closeRatio)}</div>
                     <div class="metric-subtitle">${wonCount} Won / ${lostCount} Lost (${totalEstimates} total)</div>
                     <div class="metric-definition">Percentage of estimates converted to jobs</div>
+                    <div class="metric-definition" style="border-top:none; padding-top:5px; font-weight:600; color:var(--operations-blue);">📅 ${currentPeriodLabel}</div>
                     <div class="metric-badge ${closeRatio >= 50 ? 'badge-excellent' : closeRatio >= 30 ? 'badge-good' : 'badge-warning'}">
                         ${closeRatio >= 50 ? '🔥 Excellent' : closeRatio >= 30 ? '✓ Good' : '⚠️ Needs Improvement'}
                     </div>
@@ -1267,6 +1302,7 @@
                     <div class="metric-value">${totalBillable.toFixed(0)}h</div>
                     <div class="metric-subtitle">vs ${totalBudgeted.toFixed(0)}h budgeted</div>
                     <div class="metric-definition">Total billable time across all jobs</div>
+                    <div class="metric-definition" style="border-top:none; padding-top:5px; font-weight:600; color:var(--operations-blue);">📅 ${currentPeriodLabel}</div>
                 </div>
 
                 <div class="metric-card">
@@ -1277,6 +1313,7 @@
                     <div class="metric-value">${formatPercent(efficiencyRate)}</div>
                     <div class="metric-subtitle">Billable vs Budgeted Performance</div>
                     <div class="metric-definition">How well jobs stay within budget</div>
+                    <div class="metric-definition" style="border-top:none; padding-top:5px; font-weight:600; color:var(--operations-blue);">📅 ${currentPeriodLabel}</div>
                     <div class="metric-badge ${efficiencyRate >= 75 && efficiencyRate <= 100 ? 'badge-excellent' : efficiencyRate < 75 ? 'badge-warning' : 'badge-good'}">
                         ${efficiencyRate >= 75 && efficiencyRate <= 100 ? '💎 On Budget' : efficiencyRate < 75 ? 'Over Budget' : 'Under-Estimated'}
                     </div>
@@ -1290,6 +1327,7 @@
                     <div class="metric-value">${nonBillableData.hours.toFixed(1)}h</div>
                     <div class="metric-subtitle">${formatPercent(nonBillableData.percentage)} of work time</div>
                     <div class="metric-definition">Travel, breaks, and time between jobs</div>
+                    <div class="metric-definition" style="border-top:none; padding-top:5px; font-weight:600; color:var(--operations-blue);">📅 ${currentPeriodLabel}</div>
                     <div class="metric-badge ${nonBillableData.percentage < 15 ? 'badge-excellent' : nonBillableData.percentage <= 25 ? 'badge-good' : 'badge-warning'}">
                         ${nonBillableData.percentage < 15 ? '🔥 Excellent' : nonBillableData.percentage <= 25 ? '✓ Good' : '⚠️ High'}
                     </div>
@@ -1303,6 +1341,7 @@
                     <div class="metric-value">${recurringJobs}/${oneTimeJobs}</div>
                     <div class="metric-subtitle">${formatPercent(recurringPercent)} recurring jobs</div>
                     <div class="metric-definition">Repeat business vs new one-time jobs</div>
+                    <div class="metric-definition" style="border-top:none; padding-top:5px; font-weight:600; color:var(--operations-blue);">📅 ${currentPeriodLabel}</div>
                     <div class="metric-badge ${recurringPercent >= 60 ? 'badge-excellent' : recurringPercent >= 40 ? 'badge-good' : 'badge-warning'}">
                         ${recurringPercent >= 60 ? '💎 Strong Retention' : recurringPercent >= 40 ? '✓ Good Mix' : '⚠️ Build Recurring'}
                     </div>
@@ -1532,6 +1571,178 @@
             });
         }
 
+        function displayDriveTimeChart() {
+            // Calculate drive time (non-billable time) aggregated by different frequencies
+            const driveTimeData = {
+                daily: [],
+                weekly: [],
+                monthly: [],
+                yearly: []
+            };
+
+            // Group by date first
+            const dateGroups = {};
+            
+            costAnalysisData.forEach(job => {
+                const dateStr = job['Job Date'] || '';
+                const date = parseDate(dateStr);
+                if (!date) return;
+                
+                const startTime = job['Start Time'] || '';
+                const endTime = job['End Time'] || '';
+                const billable = parseFloat(job['Billable Hours'] || 0);
+                
+                if (!startTime || !endTime) return;
+                
+                const dateKey = dateStr;
+                if (!dateGroups[dateKey]) {
+                    dateGroups[dateKey] = {
+                        date: date,
+                        jobs: [],
+                        totalBillable: 0
+                    };
+                }
+                
+                const start = parseTime(startTime);
+                const end = parseTime(endTime);
+                
+                if (start !== null && end !== null) {
+                    dateGroups[dateKey].jobs.push({ start, end, billable });
+                    dateGroups[dateKey].totalBillable += billable;
+                }
+            });
+
+            // Calculate drive time for each day
+            Object.entries(dateGroups).forEach(([dateStr, dayData]) => {
+                if (dayData.jobs.length === 0) return;
+                
+                const startTimes = dayData.jobs.map(j => j.start);
+                const endTimes = dayData.jobs.map(j => j.end);
+                const firstStart = Math.min(...startTimes);
+                const lastEnd = Math.max(...endTimes);
+                
+                const workHours = lastEnd - firstStart;
+                const driveTime = workHours - dayData.totalBillable;
+                
+                driveTimeData.daily.push({
+                    date: dayData.date,
+                    driveTime: driveTime,
+                    dateStr: dateStr
+                });
+            });
+
+            // Aggregate to weekly
+            const weeklyGroups = {};
+            driveTimeData.daily.forEach(day => {
+                const weekStart = new Date(day.date);
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of week (Sunday)
+                const weekKey = weekStart.toISOString().split('T')[0];
+                
+                if (!weeklyGroups[weekKey]) {
+                    weeklyGroups[weekKey] = { driveTime: 0, count: 0 };
+                }
+                weeklyGroups[weekKey].driveTime += day.driveTime;
+                weeklyGroups[weekKey].count++;
+            });
+
+            // Aggregate to monthly
+            const monthlyGroups = {};
+            driveTimeData.daily.forEach(day => {
+                const monthKey = `${day.date.getFullYear()}-${String(day.date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (!monthlyGroups[monthKey]) {
+                    monthlyGroups[monthKey] = { driveTime: 0, count: 0 };
+                }
+                monthlyGroups[monthKey].driveTime += day.driveTime;
+                monthlyGroups[monthKey].count++;
+            });
+
+            // Aggregate to yearly
+            const yearlyGroups = {};
+            driveTimeData.daily.forEach(day => {
+                const yearKey = day.date.getFullYear().toString();
+                
+                if (!yearlyGroups[yearKey]) {
+                    yearlyGroups[yearKey] = { driveTime: 0, count: 0 };
+                }
+                yearlyGroups[yearKey].driveTime += day.driveTime;
+                yearlyGroups[yearKey].count++;
+            });
+
+            // Prepare chart data based on current view
+            let chartLabels = [];
+            let chartData = [];
+            let chartTitle = 'Drive Time Analysis';
+
+            const view = document.getElementById('viewType').value;
+            
+            if (view === 'monthly') {
+                // Show daily breakdown for monthly view
+                chartLabels = driveTimeData.daily.slice(-30).map(d => d.dateStr);
+                chartData = driveTimeData.daily.slice(-30).map(d => d.driveTime);
+                chartTitle = `Daily Drive Time - ${currentPeriodLabel}`;
+            } else if (view === 'yearly') {
+                // Show monthly breakdown for yearly view
+                chartLabels = Object.keys(monthlyGroups).sort();
+                chartData = chartLabels.map(key => monthlyGroups[key].driveTime);
+                chartTitle = `Monthly Drive Time - ${currentPeriodLabel}`;
+            }
+
+            const ctx = document.getElementById('driveTimeChart');
+            
+            if (driveTimeChart) driveTimeChart.destroy();
+            
+            driveTimeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Drive Time (hours)',
+                        data: chartData,
+                        borderColor: '#e67e22',
+                        backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#e67e22'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: chartTitle,
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: { 
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: { size: 13, weight: 'bold' }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `Drive Time: ${ctx.parsed.y.toFixed(1)} hours`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: value => value.toFixed(1) + 'h'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         function displayClientProfitability() {
             const clients = {};
             const MAN_HOUR_GOAL = 91; // $91 per man hour goal
@@ -1556,12 +1767,36 @@
                 clients[client].jobs += 1;
             });
 
-            const sortedClients = Object.entries(clients)
-                .sort((a, b) => b[1].revenue - a[1].revenue);
+            let sortedClients = Object.entries(clients)
+                .map(([name, data]) => {
+                    const efficiency = data.budgeted > 0 ? (data.billable / data.budgeted) * 100 : 0;
+                    const revenuePerManHour = data.billable > 0 ? data.revenue / data.billable : 0;
+                    
+                    let profitabilityCategory = 'good';
+                    if (efficiency >= 75 && efficiency <= 100 && revenuePerManHour >= MAN_HOUR_GOAL) {
+                        profitabilityCategory = 'most';
+                    } else if (efficiency < 75 || revenuePerManHour < (MAN_HOUR_GOAL * 0.8)) {
+                        profitabilityCategory = 'least';
+                    }
+                    
+                    return {
+                        name,
+                        data,
+                        efficiency,
+                        revenuePerManHour,
+                        profitabilityCategory
+                    };
+                })
+                .sort((a, b) => b.data.revenue - a.data.revenue);
 
-            const rows = sortedClients.map(([name, data], index) => {
-                const efficiency = data.budgeted > 0 ? (data.billable / data.budgeted) * 100 : 0;
-                const revenuePerManHour = data.billable > 0 ? data.revenue / data.billable : 0;
+            // Apply filter
+            const filter = document.getElementById('profitabilityFilter').value;
+            if (filter !== 'all') {
+                sortedClients = sortedClients.filter(client => client.profitabilityCategory === filter);
+            }
+
+            const rows = sortedClients.map(client => {
+                const { name, data, efficiency, revenuePerManHour, profitabilityCategory } = client;
                 
                 const efficiencyColor = efficiency >= 75 && efficiency <= 100 ? '#27ae60' : 
                                        efficiency < 75 ? '#e74c3c' : '#f39c12';
@@ -1570,18 +1805,14 @@
                                     revenuePerManHour >= (MAN_HOUR_GOAL * 0.8) ? '#f39c12' : '#e74c3c';
                 
                 let profitability = 'Good';
-                let profitClass = '';
+                let profitClass = 'badge-good';
                 
-                // Profitability based on both efficiency and revenue per man hour
-                if (efficiency >= 75 && efficiency <= 100 && revenuePerManHour >= MAN_HOUR_GOAL) {
+                if (profitabilityCategory === 'most') {
                     profitability = '💎 Most Profitable';
                     profitClass = 'badge-excellent';
-                } else if (efficiency < 75 || revenuePerManHour < (MAN_HOUR_GOAL * 0.8)) {
+                } else if (profitabilityCategory === 'least') {
                     profitability = '⚠️ Least Profitable';
                     profitClass = 'badge-danger';
-                } else {
-                    profitability = 'Good';
-                    profitClass = 'badge-good';
                 }
                 
                 return `
@@ -1600,7 +1831,7 @@
                 `;
             }).join('');
             
-            document.getElementById('clientTableBody').innerHTML = rows || '<tr><td colspan="7" style="text-align:center;">No client data available</td></tr>';
+            document.getElementById('clientTableBody').innerHTML = rows || '<tr><td colspan="7" style="text-align:center;">No clients match this filter</td></tr>';
         }
 
         function displayServicePerformance() {
@@ -1636,6 +1867,14 @@
                     const avgJobValue = data.jobs > 0 ? data.revenue / data.jobs : 0;
                     const efficiency = data.budgeted > 0 ? (data.billable / data.budgeted) * 100 : 0;
                     
+                    // Format time spent as days and hours
+                    const totalHours = data.billable;
+                    const days = Math.floor(totalHours / 8); // 8-hour workdays
+                    const hours = totalHours % 8;
+                    const timeSpent = days > 0 
+                        ? `${days}d ${hours.toFixed(1)}h` 
+                        : `${hours.toFixed(1)}h`;
+                    
                     const efficiencyColor = efficiency >= 75 && efficiency <= 100 ? '#27ae60' : 
                                            efficiency < 75 ? '#e74c3c' : '#f39c12';
                     
@@ -1645,13 +1884,17 @@
                             <td>${formatCurrency(data.revenue)}</td>
                             <td style="font-weight:bold;color:#2d5016;">${formatPercent(percentOfTotal)}</td>
                             <td>${data.jobs}</td>
+                            <td style="font-weight:600;color:#2c5aa0;">
+                                ${timeSpent}
+                                <small style="display:block;color:#7f8c8d;font-size:0.85em;">${totalHours.toFixed(1)} total hours</small>
+                            </td>
                             <td>${formatCurrency(avgJobValue)}</td>
                             <td style="color:${efficiencyColor};font-weight:bold;">${formatPercent(efficiency)}</td>
                         </tr>
                     `;
                 }).join('');
             
-            document.getElementById('serviceTableBody').innerHTML = rows || '<tr><td colspan="6" style="text-align:center;">No service data available</td></tr>';
+            document.getElementById('serviceTableBody').innerHTML = rows || '<tr><td colspan="7" style="text-align:center;">No service data available</td></tr>';
         }
 
         function refreshData() {
