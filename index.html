@@ -1241,17 +1241,46 @@
             let sentCount = 0;
             let draftCount = 0;
             
-            // Use all data filtered by date range (includes estimates that aren't jobs yet)
-            const dateFilteredData = filterDataByDateRange(allCostAnalysisData);
+            // IMPORTANT: For Close Ratio, we need to filter by ESTIMATE DATE, not Job Date
+            // because Estimate Status only exists on estimate rows
+            const view = document.getElementById('viewType').value;
+            let estimateFilteredData = [];
             
-            dateFilteredData.forEach((job, index) => {
+            if (view === 'monthly') {
+                const month = parseInt(document.getElementById('monthSelect').value);
+                const year = parseInt(document.getElementById('yearSelect').value);
+                
+                estimateFilteredData = allCostAnalysisData.filter(row => {
+                    const estimateDateStr = row['Estimate Date'] || '';
+                    const date = parseDate(estimateDateStr);
+                    return date && date.getMonth() === month && date.getFullYear() === year;
+                });
+            } else if (view === 'yearly') {
+                const year = parseInt(document.getElementById('yearSelect').value);
+                
+                estimateFilteredData = allCostAnalysisData.filter(row => {
+                    const estimateDateStr = row['Estimate Date'] || '';
+                    const date = parseDate(estimateDateStr);
+                    return date && date.getFullYear() === year;
+                });
+            }
+            
+            console.log('📊 Estimate Filter:', {
+                'Period': currentPeriodLabel,
+                'Estimates Found': estimateFilteredData.length,
+                'Sample': estimateFilteredData.slice(0, 3).map(r => ({
+                    'Estimate Date': r['Estimate Date'],
+                    'Estimate Status': r['Estimate Status']
+                }))
+            });
+            
+            estimateFilteredData.forEach((job, index) => {
                 const estimateStatus = (job['Estimate Status'] || '').toLowerCase().trim();
                 
                 // Debug: Log first few to see what we're getting
                 if (index < 5) {
                     console.log(`Row ${index + 1}:`, {
                         'Estimate Status': job['Estimate Status'],
-                        'Job Date': job['Job Date'],
                         'Estimate Date': job['Estimate Date'],
                         'Client': job['Client Name']
                     });
@@ -1281,7 +1310,7 @@
                 'Closed Estimates': closedEstimates,
                 'Close Ratio': closeRatio.toFixed(1) + '%',
                 'Period': currentPeriodLabel,
-                'Total Rows Checked': dateFilteredData.length
+                'Total Rows Checked': estimateFilteredData.length
             });
 
             // Calculate Billable vs Budgeted
