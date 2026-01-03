@@ -526,6 +526,7 @@
                             <th>Total Revenue</th>
                             <th>Jobs Completed</th>
                             <th>Billable Hours</th>
+                            <th>$/Man Hour</th>
                             <th>Efficiency Rate</th>
                             <th>Profitability</th>
                         </tr>
@@ -854,15 +855,15 @@
         }
 
         function displayKPIMetrics() {
-            // Calculate Close Ratio
+            // Calculate Close Ratio from Estimate Status column (AI)
             let wonCount = 0;
             let lostCount = 0;
             
             costAnalysisData.forEach(job => {
-                const status = (job['Job Status'] || '').toLowerCase();
-                if (status === 'won' || status === 'completed' || status === 'complete') {
+                const estimateStatus = (job['Estimate Status'] || '').toLowerCase();
+                if (estimateStatus === 'won') {
                     wonCount++;
-                } else if (status === 'lost') {
+                } else if (estimateStatus === 'lost') {
                     lostCount++;
                 }
             });
@@ -939,6 +940,27 @@
         }
 
         function calculateNonBillableTime() {
+            /*
+             * NON-BILLABLE TIME CALCULATION:
+             * 
+             * 1. Group all jobs by date
+             * 2. For each day:
+             *    - Find the earliest Start Time (first job of the day)
+             *    - Find the latest End Time (last job of the day)
+             *    - Total Work Hours = Last End Time - First Start Time
+             *    - Sum all Billable Hours for that day
+             * 3. Non-Billable Time = Total Work Hours - Billable Hours
+             *    (This represents travel time, breaks, time between jobs, etc.)
+             * 4. Percentage = (Non-Billable Hours / Total Work Hours) × 100
+             * 
+             * Example:
+             * - First job starts at 8:00 AM
+             * - Last job ends at 5:00 PM
+             * - Total Work Hours = 9 hours
+             * - Billable Hours = 6.5 hours
+             * - Non-Billable Time = 9 - 6.5 = 2.5 hours (27.8%)
+             */
+            
             // Group jobs by date and calculate actual work hours vs billable hours
             const dayGroups = {};
             
@@ -999,10 +1021,13 @@
             // Calculate Top Search Source
             const sources = {};
             let totalRevenue = 0;
+            let totalBillable = 0;
+            const MAN_HOUR_GOAL = 91;
             
             costAnalysisData.forEach(job => {
                 const source = job['Source'] || 'Unknown';
                 const revenue = parseNumber(job['Job Amount'] || 0);
+                const billable = parseFloat(job['Billable Hours'] || 0);
                 
                 if (!sources[source]) {
                     sources[source] = { revenue: 0, count: 0 };
@@ -1010,6 +1035,7 @@
                 sources[source].revenue += revenue;
                 sources[source].count++;
                 totalRevenue += revenue;
+                totalBillable += billable;
             });
             
             const sortedSources = Object.entries(sources)
@@ -1017,6 +1043,7 @@
             
             const topSource = sortedSources[0] || ['None', { revenue: 0, count: 0 }];
             const topSourcePercent = totalRevenue > 0 ? (topSource[1].revenue / totalRevenue) * 100 : 0;
+            const avgRevenuePerManHour = totalBillable > 0 ? totalRevenue / totalBillable : 0;
             
             const html = `
                 <div class="metric-card highlight">
@@ -1039,14 +1066,17 @@
                     <div class="metric-definition">Total revenue in selected period</div>
                 </div>
 
-                <div class="metric-card">
+                <div class="metric-card ${avgRevenuePerManHour < MAN_HOUR_GOAL ? 'alert-warning' : 'highlight'}">
                     <div class="metric-header">
-                        <span class="metric-title">Active Sources</span>
-                        <span class="metric-icon">📊</span>
+                        <span class="metric-title">Avg Revenue/Man Hour</span>
+                        <span class="metric-icon">💵</span>
                     </div>
-                    <div class="metric-value">${Object.keys(sources).length}</div>
-                    <div class="metric-subtitle">Different lead sources</div>
-                    <div class="metric-definition">Number of marketing channels generating revenue</div>
+                    <div class="metric-value">${formatCurrency(avgRevenuePerManHour)}</div>
+                    <div class="metric-subtitle">Goal: $${MAN_HOUR_GOAL}/hour</div>
+                    <div class="metric-definition">Revenue ÷ Billable Hours</div>
+                    <div class="metric-badge ${avgRevenuePerManHour >= MAN_HOUR_GOAL ? 'badge-excellent' : avgRevenuePerManHour >= (MAN_HOUR_GOAL * 0.9) ? 'badge-good' : 'badge-warning'}">
+                        ${avgRevenuePerManHour >= MAN_HOUR_GOAL ? '🔥 Above Goal' : avgRevenuePerManHour >= (MAN_HOUR_GOAL * 0.9) ? '✓ Near Goal' : '⚠️ Below Goal'}
+                    </div>
                 </div>
             `;
             
@@ -1127,6 +1157,7 @@
 
         function displayClientProfitability() {
             const clients = {};
+            const MAN_HOUR_GOAL = 91; // $91 per man hour goal
             
             costAnalysisData.forEach(job => {
                 const client = job['Client Name'] || 'Unknown';
@@ -1153,29 +1184,27 @@
 
             const rows = sortedClients.map(([name, data], index) => {
                 const efficiency = data.budgeted > 0 ? (data.billable / data.budgeted) * 100 : 0;
+                const revenuePerManHour = data.billable > 0 ? data.revenue / data.billable : 0;
                 
                 const efficiencyColor = efficiency >= 75 && efficiency <= 100 ? '#27ae60' : 
                                        efficiency < 75 ? '#e74c3c' : '#f39c12';
                 
+                const manHourColor = revenuePerManHour >= MAN_HOUR_GOAL ? '#27ae60' : 
+                                    revenuePerManHour >= (MAN_HOUR_GOAL * 0.8) ? '#f39c12' : '#e74c3c';
+                
                 let profitability = 'Good';
                 let profitClass = '';
                 
-                if (efficiency >= 75 && efficiency <= 95) {
+                // Profitability based on both efficiency and revenue per man hour
+                if (efficiency >= 75 && efficiency <= 100 && revenuePerManHour >= MAN_HOUR_GOAL) {
                     profitability = '💎 Most Profitable';
                     profitClass = 'badge-excellent';
-                } else if (efficiency < 75) {
+                } else if (efficiency < 75 || revenuePerManHour < (MAN_HOUR_GOAL * 0.8)) {
                     profitability = '⚠️ Least Profitable';
                     profitClass = 'badge-danger';
                 } else {
                     profitability = 'Good';
                     profitClass = 'badge-good';
-                }
-                
-                // Mark top 3 and bottom 3
-                if (index < 3 && efficiency >= 75) {
-                    profitClass = 'badge-excellent';
-                } else if (index >= sortedClients.length - 3 || efficiency < 75) {
-                    profitClass = 'badge-danger';
                 }
                 
                 return `
@@ -1184,13 +1213,17 @@
                         <td>${formatCurrency(data.revenue)}</td>
                         <td>${data.jobs}</td>
                         <td>${data.billable.toFixed(1)}h</td>
+                        <td style="color:${manHourColor};font-weight:bold;">
+                            ${formatCurrency(revenuePerManHour)}
+                            <small style="display:block;color:#7f8c8d;font-size:0.85em;">Goal: $${MAN_HOUR_GOAL}</small>
+                        </td>
                         <td style="color:${efficiencyColor};font-weight:bold;">${formatPercent(efficiency)}</td>
                         <td><span class="metric-badge ${profitClass}">${profitability}</span></td>
                     </tr>
                 `;
             }).join('');
             
-            document.getElementById('clientTableBody').innerHTML = rows || '<tr><td colspan="6" style="text-align:center;">No client data available</td></tr>';
+            document.getElementById('clientTableBody').innerHTML = rows || '<tr><td colspan="7" style="text-align:center;">No client data available</td></tr>';
         }
 
         function displayServicePerformance() {
