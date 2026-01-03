@@ -17,122 +17,176 @@
             --warning: #f39c12;
             --danger: #e74c3c;
         }
-        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 0; color: var(--text-dark); }
-        .dashboard-header { background: white; padding: 15px 40px; border-bottom: 3px solid var(--primary-green); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
-        .section { background: white; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .metric-card { padding: 20px; border-left: 5px solid var(--primary-green); background: #fcfcfc; border-radius: 4px; }
-        .metric-label { font-size: 0.9em; color: var(--text-light); font-weight: 600; text-transform: uppercase; }
-        .metric-value { font-size: 2em; font-weight: 800; margin-top: 5px; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
-        th { background: var(--primary-green); color: white; padding: 15px; text-align: left; font-size: 0.9em; }
-        td { padding: 12px 15px; border-bottom: 1px solid #eee; }
-        tr:hover { background: #f8f9fa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; color: var(--text-dark); }
 
-        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; }
-        .status-good { color: var(--success); }
-        .status-warn { color: var(--warning); }
-        .status-bad { color: var(--danger); }
+        /* Header Styling */
+        .dashboard-header {
+            background: white;
+            padding: 20px 40px;
+            border-bottom: 4px solid var(--primary-green);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-left h1 { color: var(--primary-green); font-size: 1.8em; margin-bottom: 5px; }
+        .header-left p { color: var(--text-light); font-size: 0.9em; font-weight: 600; }
 
-        .controls { display: flex; gap: 10px; align-items: center; }
-        select { padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); font-weight: 600; }
-        .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        .btn-primary { background: var(--primary-green); color: white; transition: background 0.2s; }
-        .btn-primary:hover { background: var(--light-green); }
+        .controls { display: flex; gap: 12px; align-items: center; }
+        select { padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 600; background: #fff; cursor: pointer; }
+        .btn-refresh { background: var(--primary-green); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-refresh:hover { background: var(--light-green); transform: translateY(-1px); }
+
+        /* Content Layout */
+        .container { max-width: 1500px; margin: 30px auto; padding: 0 25px; }
+        
+        /* KPI Cards */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .metric-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            border-left: 6px solid var(--primary-green);
+            transition: 0.3s;
+        }
+        .metric-card:hover { transform: translateY(-5px); box-shadow: 0 6px 15px rgba(0,0,0,0.12); }
+        .metric-label { font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 700; margin-bottom: 10px; }
+        .metric-value { font-size: 2.4em; font-weight: 800; color: var(--text-dark); }
+
+        /* Table Styling */
+        .section { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+        .section-header h2 { color: var(--primary-green); font-size: 1.4em; }
+
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        thead th { background: #f8f9fa; color: var(--text-light); text-align: left; padding: 15px; font-size: 0.85em; text-transform: uppercase; border-bottom: 2px solid #eee; }
+        tbody td { padding: 18px 15px; border-bottom: 1px solid #f0f0f0; font-size: 0.95em; }
+        tbody tr:last-child td { border-bottom: none; }
+        
+        /* Indicators */
+        .tag { padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .tag-excellent { background: #e8f5e9; color: #2e7d32; }
+        .tag-warning { background: #fff3e0; color: #ef6c00; }
+        .tag-danger { background: #ffebee; color: #c62828; }
+        
+        .value-up { color: var(--success); font-weight: bold; }
+        .value-down { color: var(--danger); font-weight: bold; }
+
+        @media (max-width: 768px) {
+            .dashboard-header { flex-direction: column; gap: 20px; text-align: center; }
+            .controls { flex-wrap: wrap; justify-content: center; }
+        }
     </style>
 </head>
 <body>
 
-<div class="dashboard-header">
-    <div>
-        <h1 style="color: var(--primary-green); margin: 0; font-size: 1.8em;">WS Operations Dashboard</h1>
-        <small id="lastUpdate" style="color: var(--text-light);">Connecting to Google Sheets...</small>
-    </div>
-    <div class="controls">
-        <select id="monthSelect" onchange="filterAndDisplay()"></select>
-        <select id="yearSelect" onchange="filterAndDisplay()"></select>
-        <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh</button>
-    </div>
-</div>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>WS Operations Dashboard</h1>
+            <p id="syncStatus">Initializing secure connection...</p>
+        </div>
+        <div class="controls">
+            <select id="monthSelect" onchange="filterAndDisplay()"></select>
+            <select id="yearSelect" onchange="filterAndDisplay()"></select>
+            <button class="btn-refresh" onclick="refreshData()">
+                <span>🔄</span> Refresh Data
+            </button>
+        </div>
+    </header>
 
-<div class="container">
-    <div class="section">
+    <main class="container">
         <div class="metrics-grid">
             <div class="metric-card">
-                <div class="metric-label">Total Revenue</div>
+                <div class="metric-label">Monthly Gross Revenue</div>
                 <div class="metric-value" id="kpi-revenue">$0.00</div>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">Efficiency Rate</div>
-                <div class="metric-value" id="kpi-efficiency">0%</div>
+            <div class="metric-card" style="border-left-color: var(--warning);">
+                <div class="metric-label">Team Efficiency</div>
+                <div class="metric-value" id="kpi-efficiency">0.0%</div>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">Avg Ticket Price</div>
+            <div class="metric-card" style="border-left-color: #3498db;">
+                <div class="metric-label">Avg. Revenue Per Job</div>
                 <div class="metric-value" id="kpi-ticket">$0.00</div>
             </div>
         </div>
-    </div>
 
-    <div class="section">
-        <h3 style="margin-bottom: 20px; color: var(--primary-green);">Client Profitability Analysis</h3>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Client Name</th>
-                        <th>Total Revenue</th>
-                        <th>$/Man Hour</th>
-                        <th>Efficiency</th>
-                        <th>Performance</th>
-                    </tr>
-                </thead>
-                <tbody id="clientTableBody">
-                    <tr><td colspan="5" style="text-align:center;">Fetching data from sheet...</td></tr>
-                </tbody>
-            </table>
+        <div class="section">
+            <div class="section-header">
+                <h2>Client Profitability Analysis</h2>
+                <div id="recordCount" style="font-size: 0.9em; color: var(--text-light);">0 records found</div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Client Name</th>
+                            <th>Revenue</th>
+                            <th>Man Hours</th>
+                            <th>$/Man Hour</th>
+                            <th>Efficiency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientTableBody">
+                        <tr><td colspan="6" style="text-align: center; padding: 50px;">Syncing with Google Sheets...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-</div>
+    </main>
 
 <script>
+    // --- SETTINGS ---
     const SPREADSHEET_ID = '1fFbsuDFXu_W4MK234vNwM-WsEHkcDp6N1Tn_ZRe_J1I';
     const GID = '792510277';
     
     let allData = [];
 
-    // 1. Initialize Dropdowns
-    function initDropdowns() {
-        const monthSelect = document.getElementById('monthSelect');
+    // --- INITIALIZE UI ---
+    function init() {
         const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-        monthSelect.innerHTML = months.map((m, i) => `<option value="${i}">${m}</option>`).join('');
+        const mSelect = document.getElementById('monthSelect');
+        mSelect.innerHTML = months.map((m, i) => `<option value="${i}">${m}</option>`).join('');
 
-        const yearSelect = document.getElementById('yearSelect');
-        const currentYear = new Date().getFullYear();
-        yearSelect.innerHTML = [0, 1, 2].map(offset => `<option value="${currentYear - offset}">${currentYear - offset}</option>`).join('');
+        const ySelect = document.getElementById('yearSelect');
+        const currYear = new Date().getFullYear();
+        ySelect.innerHTML = [0, 1, 2].map(v => `<option value="${currYear-v}">${currYear-v}</option>`).join('');
+        
+        refreshData();
     }
 
-    // 2. Fetch Data
+    // --- DATA FETCHING ---
     function refreshData() {
-        document.getElementById('lastUpdate').innerText = "Syncing...";
+        document.getElementById('syncStatus').innerText = "🔄 Fetching latest data...";
         const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
         
         fetch(url)
             .then(res => res.text())
             .then(csv => {
-                parseCSV(csv);
-                document.getElementById('lastUpdate').innerText = "Last Sync: " + new Date().toLocaleTimeString();
+                processCSV(csv);
+                document.getElementById('syncStatus').innerText = "✅ Last Sync: " + new Date().toLocaleTimeString();
             })
             .catch(err => {
                 console.error(err);
-                document.getElementById('clientTableBody').innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">Error: Make sure the Google Sheet is "Public" or "Anyone with link can view"</td></tr>`;
+                document.getElementById('syncStatus').innerText = "❌ Connection Failed";
+                alert("Could not connect to Google Sheet. Ensure it is set to 'Anyone with the link can view'.");
             });
     }
 
-    // 3. Parse CSV
-    function parseCSV(csvText) {
-        const lines = csvText.split('\n').filter(line => line.trim() !== "");
+    function cleanNum(val) {
+        if (!val) return 0;
+        return parseFloat(val.toString().replace(/[$,\s]/g, '')) || 0;
+    }
+
+    function processCSV(csvText) {
+        const lines = csvText.split('\n').filter(l => l.trim() !== "");
         if (lines.length < 2) return;
 
         const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
@@ -140,27 +194,28 @@
 
         for (let i = 1; i < lines.length; i++) {
             const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            let obj = {};
+            let row = {};
             headers.forEach((h, idx) => {
-                let val = values[idx] ? values[idx].trim().replace(/"/g, '') : "";
-                obj[h] = val;
+                row[h] = values[idx] ? values[idx].trim().replace(/"/g, '') : "";
             });
 
-            // Clean Numbers
-            const rev = parseFloat(obj['Revenue']?.replace(/[$,]/g, '')) || 0;
-            const hrs = parseFloat(obj['Man Hours']) || 0;
-            const bud = parseFloat(obj['Budgeted Hours']) || 0;
-            const date = new Date(obj['Date']);
-
-            if (!isNaN(date.getTime())) {
-                rows.push({ date, client: obj['Client Name'] || 'Unknown', revenue: rev, hours: hrs, budgeted: bud });
+            const dateObj = new Date(row['Date']);
+            if (!isNaN(dateObj.getTime())) {
+                rows.push({
+                    date: dateObj,
+                    client: row['Client Name'] || 'Unknown Client',
+                    revenue: cleanNum(row['Revenue']),
+                    hours: cleanNum(row['Man Hours']),
+                    budgeted: cleanNum(row['Budgeted Hours'])
+                });
             }
         }
-        allData = rows;
         
-        // Auto-set dropdowns to the most recent data point found
+        allData = rows;
+
+        // Smart-Date Feature: Set dropdowns to the latest data found in the sheet
         if (allData.length > 0) {
-            const latest = allData.sort((a,b) => b.date - a.date)[0];
+            const latest = allData.reduce((a, b) => a.date > b.date ? a : b);
             document.getElementById('monthSelect').value = latest.date.getMonth();
             document.getElementById('yearSelect').value = latest.date.getFullYear();
         }
@@ -168,77 +223,76 @@
         filterAndDisplay();
     }
 
-    // 4. Filter and Update UI
+    // --- FILTER & RENDER ---
     function filterAndDisplay() {
-        const selMonth = parseInt(document.getElementById('monthSelect').value);
-        const selYear = parseInt(document.getElementById('yearSelect').value);
+        const m = parseInt(document.getElementById('monthSelect').value);
+        const y = parseInt(document.getElementById('yearSelect').value);
 
-        const filtered = allData.filter(d => d.date.getMonth() === selMonth && d.date.getFullYear() === selYear);
-        
-        updateKPIs(filtered);
-        updateTable(filtered);
+        const filtered = allData.filter(d => d.date.getMonth() === m && d.date.getFullYear() === y);
+        document.getElementById('recordCount').innerText = `${filtered.length} jobs found for this period`;
+
+        renderKPIs(filtered);
+        renderTable(filtered);
     }
 
-    function updateKPIs(data) {
-        let totalRev = 0, totalHrs = 0, totalBud = 0;
+    function renderKPIs(data) {
+        let rev = 0, hrs = 0, bud = 0;
         data.forEach(d => {
-            totalRev += d.revenue;
-            totalHrs += d.hours;
-            totalBud += d.budgeted;
+            rev += d.revenue;
+            hrs += d.hours;
+            bud += d.budgeted;
         });
 
-        document.getElementById('kpi-revenue').innerText = formatCurrency(totalRev);
-        const efficiency = totalBud > 0 ? (totalHrs / totalBud) * 100 : 0;
+        document.getElementById('kpi-revenue').innerText = formatCurrency(rev);
+        const efficiency = bud > 0 ? (hrs / bud) * 100 : 0;
         document.getElementById('kpi-efficiency').innerText = efficiency.toFixed(1) + "%";
-        document.getElementById('kpi-ticket').innerText = data.length > 0 ? formatCurrency(totalRev / data.length) : "$0.00";
+        document.getElementById('kpi-ticket').innerText = data.length > 0 ? formatCurrency(rev / data.length) : "$0.00";
     }
 
-    function updateTable(data) {
+    function renderTable(data) {
         const tbody = document.getElementById('clientTableBody');
         tbody.innerHTML = '';
 
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px;">No data found for this month.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color: #999;">No data found for selected month.</td></tr>';
             return;
         }
 
-        const agg = {};
+        const clients = {};
         data.forEach(d => {
-            if (!agg[d.client]) agg[d.client] = { rev: 0, hrs: 0, bud: 0 };
-            agg[d.client].rev += d.revenue;
-            agg[d.client].hrs += d.hours;
-            agg[d.client].bud += d.budgeted;
+            if (!clients[d.client]) clients[d.client] = { rev: 0, hrs: 0, bud: 0 };
+            clients[d.client].rev += d.revenue;
+            clients[d.client].hrs += d.hours;
+            clients[d.client].bud += d.budgeted;
         });
 
-        Object.entries(agg).forEach(([name, s]) => {
+        Object.entries(clients).sort((a,b) => b[1].rev - a[1].rev).forEach(([name, s]) => {
             const hourly = s.hrs > 0 ? s.rev / s.hrs : 0;
             const eff = s.bud > 0 ? (s.hrs / s.bud) * 100 : 0;
             
-            // Color Logic
-            const hourlyClass = hourly >= 91 ? 'status-good' : (hourly >= 75 ? 'status-warn' : 'status-bad');
-            const effClass = eff <= 100 ? 'status-good' : 'status-bad'; // Over 100% means took longer than budget
+            let status = '<span class="tag tag-excellent">💎 Top Tier</span>';
+            if (hourly < 91) status = '<span class="tag tag-warning">⚡ Average</span>';
+            if (hourly < 73 || eff > 110) status = '<span class="tag tag-danger">⚠️ Review</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong>${name}</strong></td>
                 <td>${formatCurrency(s.rev)}</td>
-                <td class="${hourlyClass}">${formatCurrency(hourly)}/hr</td>
-                <td class="${effClass}">${eff.toFixed(0)}%</td>
-                <td><span class="badge ${hourly >= 91 ? 'btn-primary' : ''}">${hourly >= 91 ? '💎 Top Tier' : 'Standard'}</span></td>
+                <td>${s.hrs.toFixed(1)}</td>
+                <td class="${hourly >= 91 ? 'value-up' : (hourly < 73 ? 'value-down' : '')}">${formatCurrency(hourly)}/hr</td>
+                <td class="${eff <= 100 ? 'value-up' : 'value-down'}">${eff.toFixed(0)}%</td>
+                <td>${status}</td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    function formatCurrency(v) {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
+    function formatCurrency(n) {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
     }
 
-    // Start
-    window.onload = () => {
-        initDropdowns();
-        refreshData();
-    };
+    // Run
+    init();
 </script>
 
 </body>
