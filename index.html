@@ -728,7 +728,7 @@
                             <th>Total Revenue</th>
                             <th>% of Total</th>
                             <th>Jobs</th>
-                            <th>Time Spent On Service</th>
+                            <th>Time Spent</th>
                             <th>Avg Job Value</th>
                             <th>
                                 Efficiency Rate
@@ -1207,11 +1207,22 @@
 
         function displayKPIMetrics() {
             // Calculate Close Ratio from Estimate Status column (AI)
+            // IMPORTANT: Close ratio should count ALL estimates in the period, not just completed jobs
             let wonCount = 0;
             let lostCount = 0;
             
-            costAnalysisData.forEach(job => {
-                const estimateStatus = (job['Estimate Status'] || '').toLowerCase();
+            // We need to check ALL data in the date range, not just costAnalysisData
+            // because costAnalysisData might only contain completed jobs
+            const dateFilteredData = filterDataByDateRange(allCostAnalysisData);
+            
+            dateFilteredData.forEach(job => {
+                const estimateStatus = (job['Estimate Status'] || '').toLowerCase().trim();
+                
+                // Debug: Log first few to see what we're getting
+                if (wonCount + lostCount < 5) {
+                    console.log('Estimate Status:', estimateStatus, '| Job Date:', job['Job Date']);
+                }
+                
                 if (estimateStatus === 'won') {
                     wonCount++;
                 } else if (estimateStatus === 'lost') {
@@ -1221,6 +1232,15 @@
             
             const totalEstimates = wonCount + lostCount;
             const closeRatio = totalEstimates > 0 ? (wonCount / totalEstimates) * 100 : 0;
+            
+            console.log('📊 Close Ratio Debug:', {
+                'Won': wonCount,
+                'Lost': lostCount,
+                'Total Estimates': totalEstimates,
+                'Close Ratio': closeRatio.toFixed(1) + '%',
+                'Period': currentPeriodLabel,
+                'Total Rows Checked': dateFilteredData.length
+            });
 
             // Calculate Billable vs Budgeted
             let totalBillable = 0;
