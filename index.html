@@ -1056,6 +1056,12 @@
                 console.log('🔄 Loading operations data...');
                 
                 allCostAnalysisData = await fetchSheetData(COST_ANALYSIS_GID, 'Cost Analysis');
+                
+                // Debug: Log all column headers to identify the correct columns
+                if (allCostAnalysisData.length > 0) {
+                    console.log('📊 Available Columns:', Object.keys(allCostAnalysisData[0]));
+                    console.log('📊 First Row Sample:', allCostAnalysisData[0]);
+                }
 
                 console.log('✨ Operations data loaded successfully');
                 
@@ -1196,24 +1202,48 @@
             // Calculate Non-Billable Time
             const nonBillableData = calculateNonBillableTime();
             
-            // Calculate Recurring vs One-Time Jobs
+            // Calculate Recurring vs One-Time Jobs from Column H (Job Type)
             let recurringJobs = 0;
             let oneTimeJobs = 0;
             
-            costAnalysisData.forEach(job => {
-                const jobType = (job['Job Type'] || '').toLowerCase().trim();
-                if (jobType === 'recurring' || jobType === 'maintenance' || jobType === 'repeat') {
+            costAnalysisData.forEach((job, index) => {
+                const jobType = (job['Job Type'] || '').trim();
+                const jobTypeLower = jobType.toLowerCase();
+                
+                // Log first 5 jobs to verify we're reading correctly
+                if (index < 5) {
+                    console.log(`Job ${index + 1} Type:`, jobType);
+                }
+                
+                // Check for recurring patterns
+                if (jobTypeLower.includes('recurring') || 
+                    jobTypeLower.includes('custom recurring') || 
+                    jobTypeLower.includes('maintenance') || 
+                    jobTypeLower.includes('repeat')) {
                     recurringJobs++;
-                } else if (jobType === 'one-time' || jobType === 'one time' || jobType === 'onetime' || jobType === 'initial') {
+                } 
+                // Check for one-time patterns
+                else if (jobTypeLower.includes('one time') || 
+                         jobTypeLower.includes('one-time') || 
+                         jobTypeLower.includes('onetime') || 
+                         jobTypeLower.includes('initial')) {
                     oneTimeJobs++;
-                } else if (jobType !== '') {
-                    // If job type is filled but doesn't match our keywords, try to categorize
-                    oneTimeJobs++;
+                }
+                // If there's a value but it doesn't match either pattern, log it
+                else if (jobType !== '') {
+                    console.warn('Unrecognized Job Type:', jobType);
                 }
             });
             
             const totalCategorized = recurringJobs + oneTimeJobs;
             const recurringPercent = totalCategorized > 0 ? (recurringJobs / totalCategorized) * 100 : 0;
+            
+            console.log('✅ Job Type Summary:', {
+                'Custom Recurring': recurringJobs,
+                'One Time': oneTimeJobs,
+                'Total Jobs': totalCategorized,
+                'Recurring %': recurringPercent.toFixed(1) + '%'
+            });
             
             const html = `
                 <div class="metric-card highlight">
