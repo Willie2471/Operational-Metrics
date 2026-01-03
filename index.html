@@ -16,39 +16,42 @@
             --success: #27ae60;
             --warning: #f39c12;
             --danger: #e74c3c;
-            --info: #3498db;
         }
-        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
-        .dashboard-header { background: white; padding: 20px 40px; border-bottom: 3px solid var(--primary-green); display: flex; justify-content: space-between; align-items: center; }
-        .container { max-width: 1400px; margin: 20px auto; padding: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 0; color: var(--text-dark); }
+        .dashboard-header { background: white; padding: 15px 40px; border-bottom: 3px solid var(--primary-green); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
         .section { background: white; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .metric-card { padding: 20px; border-left: 4px solid var(--primary-green); background: #f9f9f9; }
-        .metric-value { font-size: 1.8em; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { background: var(--primary-green); color: white; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #ddd; }
-        .btn { padding: 10px 15px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
-        .btn-primary { background: var(--primary-green); color: white; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; width: 50%; margin: 10% auto; padding: 20px; border-radius: 8px; }
-        .show { display: block !important; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .metric-card { padding: 20px; border-left: 5px solid var(--primary-green); background: #fcfcfc; border-radius: 4px; }
+        .metric-label { font-size: 0.9em; color: var(--text-light); font-weight: 600; text-transform: uppercase; }
+        .metric-value { font-size: 2em; font-weight: 800; margin-top: 5px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th { background: var(--primary-green); color: white; padding: 15px; text-align: left; font-size: 0.9em; }
+        td { padding: 12px 15px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f8f9fa; }
+
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; }
+        .status-good { color: var(--success); }
+        .status-warn { color: var(--warning); }
+        .status-bad { color: var(--danger); }
+
+        .controls { display: flex; gap: 10px; align-items: center; }
+        select { padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); font-weight: 600; }
+        .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary-green); color: white; transition: background 0.2s; }
+        .btn-primary:hover { background: var(--light-green); }
     </style>
 </head>
 <body>
 
 <div class="dashboard-header">
     <div>
-        <h1 style="color: var(--primary-green); margin: 0;">WS Operations Dashboard</h1>
-        <small id="lastUpdate">Initializing...</small>
+        <h1 style="color: var(--primary-green); margin: 0; font-size: 1.8em;">WS Operations Dashboard</h1>
+        <small id="lastUpdate" style="color: var(--text-light);">Connecting to Google Sheets...</small>
     </div>
     <div class="controls">
-        <select id="monthSelect" onchange="filterAndDisplay()">
-            <option value="0">January</option><option value="1">February</option><option value="2">March</option>
-            <option value="3">April</option><option value="4">May</option><option value="5">June</option>
-            <option value="6">July</option><option value="7">August</option><option value="8">September</option>
-            <option value="9">October</option><option value="10">November</option><option value="11">December</option>
-        </select>
+        <select id="monthSelect" onchange="filterAndDisplay()"></select>
         <select id="yearSelect" onchange="filterAndDisplay()"></select>
         <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh</button>
     </div>
@@ -58,170 +61,182 @@
     <div class="section">
         <div class="metrics-grid">
             <div class="metric-card">
-                <div>Total Revenue</div>
+                <div class="metric-label">Total Revenue</div>
                 <div class="metric-value" id="kpi-revenue">$0.00</div>
             </div>
             <div class="metric-card">
-                <div>Efficiency</div>
+                <div class="metric-label">Efficiency Rate</div>
                 <div class="metric-value" id="kpi-efficiency">0%</div>
             </div>
             <div class="metric-card">
-                <div>Avg Ticket</div>
+                <div class="metric-label">Avg Ticket Price</div>
                 <div class="metric-value" id="kpi-ticket">$0.00</div>
             </div>
         </div>
     </div>
 
     <div class="section">
-        <h3>Client Profitability</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Client</th>
-                    <th>Revenue</th>
-                    <th>$/Man Hour</th>
-                    <th>Efficiency</th>
-                </tr>
-            </thead>
-            <tbody id="clientTableBody">
-                <tr><td colspan="4">Loading data...</td></tr>
-            </tbody>
-        </table>
+        <h3 style="margin-bottom: 20px; color: var(--primary-green);">Client Profitability Analysis</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Total Revenue</th>
+                        <th>$/Man Hour</th>
+                        <th>Efficiency</th>
+                        <th>Performance</th>
+                    </tr>
+                </thead>
+                <tbody id="clientTableBody">
+                    <tr><td colspan="5" style="text-align:center;">Fetching data from sheet...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
-    // 1. CONFIGURATION
     const SPREADSHEET_ID = '1fFbsuDFXu_W4MK234vNwM-WsEHkcDp6N1Tn_ZRe_J1I';
     const GID = '792510277';
     
-    // 2. GLOBAL STATE
     let allData = [];
-    
-    // 3. FUNCTION DEFINITIONS (Defined first to avoid ReferenceErrors)
-    
+
+    // 1. Initialize Dropdowns
+    function initDropdowns() {
+        const monthSelect = document.getElementById('monthSelect');
+        const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        monthSelect.innerHTML = months.map((m, i) => `<option value="${i}">${m}</option>`).join('');
+
+        const yearSelect = document.getElementById('yearSelect');
+        const currentYear = new Date().getFullYear();
+        yearSelect.innerHTML = [0, 1, 2].map(offset => `<option value="${currentYear - offset}">${currentYear - offset}</option>`).join('');
+    }
+
+    // 2. Fetch Data
     function refreshData() {
-        console.log("Refreshing data...");
+        document.getElementById('lastUpdate').innerText = "Syncing...";
         const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
         
         fetch(url)
             .then(res => res.text())
             .then(csv => {
                 parseCSV(csv);
-                updateLastUpdate();
+                document.getElementById('lastUpdate').innerText = "Last Sync: " + new Date().toLocaleTimeString();
             })
             .catch(err => {
-                console.error("Error loading sheet:", err);
-                alert("Could not load Google Sheet. Check if it is set to 'Anyone with the link can view'.");
+                console.error(err);
+                document.getElementById('clientTableBody').innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">Error: Make sure the Google Sheet is "Public" or "Anyone with link can view"</td></tr>`;
             });
     }
 
+    // 3. Parse CSV
     function parseCSV(csvText) {
-        const lines = csvText.split('\n');
+        const lines = csvText.split('\n').filter(line => line.trim() !== "");
         if (lines.length < 2) return;
 
         const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
         const rows = [];
 
         for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Handles commas in quotes
-            if (values.length < headers.length) continue;
+            const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            let obj = {};
+            headers.forEach((h, idx) => {
+                let val = values[idx] ? values[idx].trim().replace(/"/g, '') : "";
+                obj[h] = val;
+            });
 
-            let rowObj = {};
-            headers.forEach((header, index) => {
-                rowObj[header] = values[index] ? values[index].trim().replace(/"/g, '') : '';
-            });
-            
-            // Convert numbers
-            rows.push({
-                date: new Date(rowObj['Date']),
-                client: rowObj['Client Name'] || 'Unknown',
-                revenue: parseFloat(rowObj['Revenue']) || 0,
-                hours: parseFloat(rowObj['Man Hours']) || 0,
-                budgeted: parseFloat(rowObj['Budgeted Hours']) || 0
-            });
+            // Clean Numbers
+            const rev = parseFloat(obj['Revenue']?.replace(/[$,]/g, '')) || 0;
+            const hrs = parseFloat(obj['Man Hours']) || 0;
+            const bud = parseFloat(obj['Budgeted Hours']) || 0;
+            const date = new Date(obj['Date']);
+
+            if (!isNaN(date.getTime())) {
+                rows.push({ date, client: obj['Client Name'] || 'Unknown', revenue: rev, hours: hrs, budgeted: bud });
+            }
         }
         allData = rows;
+        
+        // Auto-set dropdowns to the most recent data point found
+        if (allData.length > 0) {
+            const latest = allData.sort((a,b) => b.date - a.date)[0];
+            document.getElementById('monthSelect').value = latest.date.getMonth();
+            document.getElementById('yearSelect').value = latest.date.getFullYear();
+        }
+
         filterAndDisplay();
     }
 
+    // 4. Filter and Update UI
     function filterAndDisplay() {
         const selMonth = parseInt(document.getElementById('monthSelect').value);
         const selYear = parseInt(document.getElementById('yearSelect').value);
 
-        const filtered = allData.filter(row => {
-            return row.date.getMonth() === selMonth && row.date.getFullYear() === selYear;
-        });
-
-        updateUI(filtered);
+        const filtered = allData.filter(d => d.date.getMonth() === selMonth && d.date.getFullYear() === selYear);
+        
+        updateKPIs(filtered);
+        updateTable(filtered);
     }
 
-    function updateUI(data) {
-        let totalRev = 0;
-        let totalHours = 0;
-        let totalBudgeted = 0;
-        const clientAgg = {};
-
-        data.forEach(row => {
-            totalRev += row.revenue;
-            totalHours += row.hours;
-            totalBudgeted += row.budgeted;
-
-            if (!clientAgg[row.client]) clientAgg[row.client] = { rev: 0, hours: 0, budgeted: 0 };
-            clientAgg[row.client].rev += row.revenue;
-            clientAgg[row.client].hours += row.hours;
-            clientAgg[row.client].budgeted += row.budgeted;
+    function updateKPIs(data) {
+        let totalRev = 0, totalHrs = 0, totalBud = 0;
+        data.forEach(d => {
+            totalRev += d.revenue;
+            totalHrs += d.hours;
+            totalBud += d.budgeted;
         });
 
-        // Update KPIs
-        document.getElementById('kpi-revenue').innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalRev);
-        const eff = totalBudgeted > 0 ? (totalHours / totalBudgeted) * 100 : 0;
-        document.getElementById('kpi-efficiency').innerText = eff.toFixed(1) + "%";
+        document.getElementById('kpi-revenue').innerText = formatCurrency(totalRev);
+        const efficiency = totalBud > 0 ? (totalHrs / totalBud) * 100 : 0;
+        document.getElementById('kpi-efficiency').innerText = efficiency.toFixed(1) + "%";
         document.getElementById('kpi-ticket').innerText = data.length > 0 ? formatCurrency(totalRev / data.length) : "$0.00";
+    }
 
-        // Update Table
+    function updateTable(data) {
         const tbody = document.getElementById('clientTableBody');
         tbody.innerHTML = '';
-        
-        for (const [name, stats] of Object.entries(clientAgg)) {
-            const hourly = stats.hours > 0 ? stats.rev / stats.hours : 0;
-            const clientEff = stats.budgeted > 0 ? (stats.hours / stats.budgeted) * 100 : 0;
+
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px;">No data found for this month.</td></tr>';
+            return;
+        }
+
+        const agg = {};
+        data.forEach(d => {
+            if (!agg[d.client]) agg[d.client] = { rev: 0, hrs: 0, bud: 0 };
+            agg[d.client].rev += d.revenue;
+            agg[d.client].hrs += d.hours;
+            agg[d.client].bud += d.budgeted;
+        });
+
+        Object.entries(agg).forEach(([name, s]) => {
+            const hourly = s.hrs > 0 ? s.rev / s.hrs : 0;
+            const eff = s.bud > 0 ? (s.hrs / s.bud) * 100 : 0;
             
+            // Color Logic
+            const hourlyClass = hourly >= 91 ? 'status-good' : (hourly >= 75 ? 'status-warn' : 'status-bad');
+            const effClass = eff <= 100 ? 'status-good' : 'status-bad'; // Over 100% means took longer than budget
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${name}</td>
-                <td>${formatCurrency(stats.rev)}</td>
-                <td>${formatCurrency(hourly)}/hr</td>
-                <td>${clientEff.toFixed(0)}%</td>
+                <td><strong>${name}</strong></td>
+                <td>${formatCurrency(s.rev)}</td>
+                <td class="${hourlyClass}">${formatCurrency(hourly)}/hr</td>
+                <td class="${effClass}">${eff.toFixed(0)}%</td>
+                <td><span class="badge ${hourly >= 91 ? 'btn-primary' : ''}">${hourly >= 91 ? '💎 Top Tier' : 'Standard'}</span></td>
             `;
             tbody.appendChild(tr);
-        }
+        });
     }
 
-    function formatCurrency(val) {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+    function formatCurrency(v) {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
     }
 
-    function updateLastUpdate() {
-        document.getElementById('lastUpdate').innerText = "Last Sync: " + new Date().toLocaleTimeString();
-    }
-
-    // 4. INITIALIZATION
-    window.onload = function() {
-        // Set up years
-        const yearSelect = document.getElementById('yearSelect');
-        const currentYear = new Date().getFullYear();
-        for(let i=0; i<3; i++) {
-            let opt = document.createElement('option');
-            opt.value = currentYear - i;
-            opt.innerText = currentYear - i;
-            yearSelect.appendChild(opt);
-        }
-        
-        // Set current month
-        document.getElementById('monthSelect').value = new Date().getMonth();
-
-        // Load initial data
+    // Start
+    window.onload = () => {
+        initDropdowns();
         refreshData();
     };
 </script>
