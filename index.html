@@ -392,6 +392,162 @@
             color: var(--primary-green);
         }
         
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal.show {
+            display: block;
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+        
+        .modal-header {
+            padding: 25px 30px;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--light-green) 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+        
+        .modal-close {
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .modal-body {
+            padding: 30px;
+            line-height: 1.8;
+            color: var(--text-dark);
+        }
+        
+        .modal-body h3 {
+            color: var(--primary-green);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+        
+        .modal-body h3:first-child {
+            margin-top: 0;
+        }
+        
+        .formula-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-green);
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .example-box {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--success);
+            margin: 15px 0;
+        }
+        
+        .example-box .step {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        
+        .interpretation-box {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--warning);
+            margin: 15px 0;
+        }
+        
+        .interpretation-box ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        
+        .interpretation-box li {
+            margin: 8px 0;
+        }
+        
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: var(--info);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.85em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .help-icon:hover {
+            background: #2980b9;
+            transform: scale(1.1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
         @media print {
             .dashboard-header, .btn { display: none !important; }
         }
@@ -526,9 +682,18 @@
                             <th>Total Revenue</th>
                             <th>Jobs Completed</th>
                             <th>Billable Hours</th>
-                            <th>$/Man Hour</th>
-                            <th>Efficiency Rate</th>
-                            <th>Profitability</th>
+                            <th>
+                                $/Man Hour
+                                <button class="help-icon" onclick="openModal('manHourModal')" title="Click for explanation">?</button>
+                            </th>
+                            <th>
+                                Efficiency Rate
+                                <button class="help-icon" onclick="openModal('efficiencyModal')" title="Click for explanation">?</button>
+                            </th>
+                            <th>
+                                Profitability
+                                <button class="help-icon" onclick="openModal('profitabilityModal')" title="Click for explanation">?</button>
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="clientTableBody"></tbody>
@@ -548,7 +713,10 @@
                             <th>% of Total</th>
                             <th>Jobs</th>
                             <th>Avg Job Value</th>
-                            <th>Efficiency Rate</th>
+                            <th>
+                                Efficiency Rate
+                                <button class="help-icon" onclick="openModal('efficiencyModal')" title="Click for explanation">?</button>
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="serviceTableBody"></tbody>
@@ -559,6 +727,124 @@
 
     <div class="refresh-indicator" id="refreshIndicator">
         🔄 Auto-refresh in <span id="refreshCountdown">60</span>s
+    </div>
+
+    <!-- Modals for Explanations -->
+    <div id="efficiencyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚡ Efficiency Rate Explained</h2>
+                <button class="modal-close" onclick="closeModal('efficiencyModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>📐 Formula:</h3>
+                <div class="formula-box">
+                    Efficiency Rate = (Billable Hours ÷ Budgeted Hours) × 100
+                </div>
+
+                <h3>📝 Step-by-Step Example:</h3>
+                <div class="example-box">
+                    <div class="step"><strong>Step 1:</strong> Job was budgeted for <strong>8 hours</strong></div>
+                    <div class="step"><strong>Step 2:</strong> Actual billable time spent: <strong>6 hours</strong></div>
+                    <div class="step"><strong>Step 3:</strong> Calculation: 6 ÷ 8 = 0.75</div>
+                    <div class="step"><strong>Step 4:</strong> Multiply by 100: 0.75 × 100 = <strong>75%</strong></div>
+                    <div class="step" style="margin-top:15px; font-size:1.1em; color: var(--success);"><strong>✅ Result: 75% Efficiency Rate</strong></div>
+                </div>
+
+                <h3>🎯 What It Means:</h3>
+                <div class="interpretation-box">
+                    <ul>
+                        <li><strong>75-100%</strong> = 💎 <strong>Excellent!</strong> Job completed on or under budget</li>
+                        <li><strong>Less than 75%</strong> = ⚠️ <strong>Over Budget.</strong> Job took longer than estimated</li>
+                        <li><strong>Over 100%</strong> = 📊 <strong>Under-estimated.</strong> Job finished faster than budgeted (may need to adjust pricing)</li>
+                    </ul>
+                    <p style="margin-top:15px;"><strong>💡 Best Practice:</strong> Aim for 90-95% to ensure profitability while maintaining quality.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="manHourModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💵 Revenue per Man Hour Explained</h2>
+                <button class="modal-close" onclick="closeModal('manHourModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>📐 Formula:</h3>
+                <div class="formula-box">
+                    $/Man Hour = Total Revenue ÷ Total Billable Hours
+                </div>
+
+                <h3>📝 Step-by-Step Example:</h3>
+                <div class="example-box">
+                    <div class="step"><strong>Client A</strong> generated: <strong>$5,000</strong> in revenue</div>
+                    <div class="step"><strong>Billable hours</strong> for Client A: <strong>50 hours</strong></div>
+                    <div class="step"><strong>Calculation:</strong> $5,000 ÷ 50 = $100</div>
+                    <div class="step" style="margin-top:15px; font-size:1.1em; color: var(--success);"><strong>✅ Result: $100 per Man Hour</strong></div>
+                </div>
+
+                <h3>🎯 What It Means:</h3>
+                <div class="interpretation-box">
+                    <ul>
+                        <li><strong>$91+</strong> = 💎 <strong>Hitting Goal!</strong> You're profitable on this client</li>
+                        <li><strong>$73-$90</strong> = ⚠️ <strong>Close to Goal.</strong> Consider raising prices or improving efficiency</li>
+                        <li><strong>Less than $73</strong> = 🚨 <strong>Below Goal.</strong> You're losing money - adjust pricing or reduce time spent</li>
+                    </ul>
+                    <p style="margin-top:15px;"><strong>💡 Why It Matters:</strong> This shows if you're charging enough for the time spent. A client with high revenue but low $/man hour means you're spending too much time for what you're getting paid.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profitabilityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💰 Profitability Explained</h2>
+                <button class="modal-close" onclick="closeModal('profitabilityModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>📐 Formula:</h3>
+                <div class="formula-box">
+                    Profitability = Efficiency Rate + Revenue per Man Hour
+                </div>
+
+                <h3>📝 How It's Calculated:</h3>
+                <div class="example-box">
+                    <div class="step"><strong>Component 1:</strong> Efficiency Rate (75-100% = good)</div>
+                    <div class="step"><strong>Component 2:</strong> Revenue/Man Hour ($91+ = goal)</div>
+                    <div class="step" style="margin-top:10px;"><strong>Both must be good</strong> for a client to be marked as "Most Profitable"</div>
+                </div>
+
+                <h3>📝 Example - Most Profitable Client:</h3>
+                <div class="example-box">
+                    <div class="step"><strong>Efficiency Rate:</strong> 85% (within 75-100% range) ✅</div>
+                    <div class="step"><strong>Revenue/Man Hour:</strong> $105 (above $91 goal) ✅</div>
+                    <div class="step" style="margin-top:15px; font-size:1.1em; color: var(--success);"><strong>✅ Result: 💎 Most Profitable</strong></div>
+                </div>
+
+                <h3>📝 Example - Least Profitable Client:</h3>
+                <div class="example-box" style="background: #ffe5e5; border-left-color: var(--danger);">
+                    <div class="step"><strong>Efficiency Rate:</strong> 65% (below 75%) ⚠️</div>
+                    <div class="step"><strong>Revenue/Man Hour:</strong> $68 (below $91 goal) ⚠️</div>
+                    <div class="step" style="margin-top:15px; font-size:1.1em; color: var(--danger);"><strong>❌ Result: ⚠️ Least Profitable</strong></div>
+                </div>
+
+                <h3>🎯 What It Means:</h3>
+                <div class="interpretation-box">
+                    <ul>
+                        <li><strong>💎 Most Profitable:</strong> Jobs stay on budget (75-100% efficiency) AND generate good revenue per hour ($91+)</li>
+                        <li><strong>✓ Good:</strong> One metric is good, but the other needs improvement</li>
+                        <li><strong>⚠️ Least Profitable:</strong> Either going over budget OR not charging enough for time spent</li>
+                    </ul>
+                    <p style="margin-top:15px;"><strong>💡 Action Items:</strong></p>
+                    <ul>
+                        <li><strong>Low Efficiency:</strong> Train crew, improve processes, or increase time estimates</li>
+                        <li><strong>Low $/Man Hour:</strong> Raise prices or reduce time on-site</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -574,6 +860,31 @@
         let costAnalysisData = [];
         let serviceRevenueChart = null;
         let currentView = 'ytd';
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.classList.remove('show');
+                });
+            }
+        });
 
         function initializePickers() {
             const yearSelect = document.getElementById('yearSelect');
@@ -885,6 +1196,25 @@
             // Calculate Non-Billable Time
             const nonBillableData = calculateNonBillableTime();
             
+            // Calculate Recurring vs One-Time Jobs
+            let recurringJobs = 0;
+            let oneTimeJobs = 0;
+            
+            costAnalysisData.forEach(job => {
+                const jobType = (job['Job Type'] || '').toLowerCase().trim();
+                if (jobType === 'recurring' || jobType === 'maintenance' || jobType === 'repeat') {
+                    recurringJobs++;
+                } else if (jobType === 'one-time' || jobType === 'one time' || jobType === 'onetime' || jobType === 'initial') {
+                    oneTimeJobs++;
+                } else if (jobType !== '') {
+                    // If job type is filled but doesn't match our keywords, try to categorize
+                    oneTimeJobs++;
+                }
+            });
+            
+            const totalCategorized = recurringJobs + oneTimeJobs;
+            const recurringPercent = totalCategorized > 0 ? (recurringJobs / totalCategorized) * 100 : 0;
+            
             const html = `
                 <div class="metric-card highlight">
                     <div class="metric-header">
@@ -932,6 +1262,19 @@
                     <div class="metric-definition">Travel, breaks, and time between jobs</div>
                     <div class="metric-badge ${nonBillableData.percentage < 15 ? 'badge-excellent' : nonBillableData.percentage <= 25 ? 'badge-good' : 'badge-warning'}">
                         ${nonBillableData.percentage < 15 ? '🔥 Excellent' : nonBillableData.percentage <= 25 ? '✓ Good' : '⚠️ High'}
+                    </div>
+                </div>
+
+                <div class="metric-card highlight">
+                    <div class="metric-header">
+                        <span class="metric-title">Recurring vs One-Time</span>
+                        <span class="metric-icon">🔄</span>
+                    </div>
+                    <div class="metric-value">${recurringJobs}/${oneTimeJobs}</div>
+                    <div class="metric-subtitle">${formatPercent(recurringPercent)} recurring jobs</div>
+                    <div class="metric-definition">Repeat business vs new one-time jobs</div>
+                    <div class="metric-badge ${recurringPercent >= 60 ? 'badge-excellent' : recurringPercent >= 40 ? 'badge-good' : 'badge-warning'}">
+                        ${recurringPercent >= 60 ? '💎 Strong Retention' : recurringPercent >= 40 ? '✓ Good Mix' : '⚠️ Build Recurring'}
                     </div>
                 </div>
             `;
@@ -1018,22 +1361,26 @@
         }
 
         function displaySalesMetrics() {
-            // Calculate Top Search Source
+            // Calculate Top Search Source - exclude empty/unknown values
             const sources = {};
             let totalRevenue = 0;
             let totalBillable = 0;
             const MAN_HOUR_GOAL = 91;
             
             costAnalysisData.forEach(job => {
-                const source = job['Source'] || 'Unknown';
+                const source = (job['Source'] || '').trim();
                 const revenue = parseNumber(job['Job Amount'] || 0);
                 const billable = parseFloat(job['Billable Hours'] || 0);
                 
-                if (!sources[source]) {
-                    sources[source] = { revenue: 0, count: 0 };
+                // Only count sources that have actual values (not empty, not "Unknown")
+                if (source && source.toLowerCase() !== 'unknown' && source !== '') {
+                    if (!sources[source]) {
+                        sources[source] = { revenue: 0, count: 0 };
+                    }
+                    sources[source].revenue += revenue;
+                    sources[source].count++;
                 }
-                sources[source].revenue += revenue;
-                sources[source].count++;
+                
                 totalRevenue += revenue;
                 totalBillable += billable;
             });
@@ -1041,7 +1388,7 @@
             const sortedSources = Object.entries(sources)
                 .sort((a, b) => b[1].revenue - a[1].revenue);
             
-            const topSource = sortedSources[0] || ['None', { revenue: 0, count: 0 }];
+            const topSource = sortedSources[0] || ['No Data', { revenue: 0, count: 0 }];
             const topSourcePercent = totalRevenue > 0 ? (topSource[1].revenue / totalRevenue) * 100 : 0;
             const avgRevenuePerManHour = totalBillable > 0 ? totalRevenue / totalBillable : 0;
             
