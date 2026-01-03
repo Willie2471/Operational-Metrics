@@ -1126,18 +1126,37 @@
         function filterDataByDateRange(data) {
             const view = document.getElementById('viewType').value;
             
+            console.log('🔍 Filter Debug START:', {
+                'View Type': view,
+                'Total Data Rows': data.length,
+                'Sample Dates': data.slice(0, 5).map(row => ({
+                    'Job Date': row['Job Date'],
+                    'Estimate Date': row['Estimate Date']
+                }))
+            });
+            
             if (view === 'monthly') {
                 const month = parseInt(document.getElementById('monthSelect').value);
                 const year = parseInt(document.getElementById('yearSelect').value);
-                return data.filter(row => {
+                
+                console.log('📅 Looking for Month:', month + 1, 'Year:', year);
+                
+                const filtered = data.filter(row => {
                     // Check both Job Date and Estimate Date columns
                     const jobDateStr = row['Job Date'] || '';
                     const estimateDateStr = row['Estimate Date'] || '';
                     const dateStr = jobDateStr || estimateDateStr; // Use whichever is available
                     
                     const date = parseDate(dateStr);
-                    return date && date.getMonth() === month && date.getFullYear() === year;
+                    
+                    if (!date) return false;
+                    
+                    const matches = date.getMonth() === month && date.getFullYear() === year;
+                    return matches;
                 });
+                
+                console.log('✅ Filter Results:', filtered.length, 'rows found for', month + 1 + '/' + year);
+                return filtered;
             } else if (view === 'yearly') {
                 const year = parseInt(document.getElementById('yearSelect').value);
                 return data.filter(row => {
