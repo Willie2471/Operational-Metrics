@@ -1130,14 +1130,22 @@
                 const month = parseInt(document.getElementById('monthSelect').value);
                 const year = parseInt(document.getElementById('yearSelect').value);
                 return data.filter(row => {
-                    const dateStr = row['Job Date'] || '';
+                    // Check both Job Date and Estimate Date columns
+                    const jobDateStr = row['Job Date'] || '';
+                    const estimateDateStr = row['Estimate Date'] || '';
+                    const dateStr = jobDateStr || estimateDateStr; // Use whichever is available
+                    
                     const date = parseDate(dateStr);
                     return date && date.getMonth() === month && date.getFullYear() === year;
                 });
             } else if (view === 'yearly') {
                 const year = parseInt(document.getElementById('yearSelect').value);
                 return data.filter(row => {
-                    const dateStr = row['Job Date'] || '';
+                    // Check both Job Date and Estimate Date columns
+                    const jobDateStr = row['Job Date'] || '';
+                    const estimateDateStr = row['Estimate Date'] || '';
+                    const dateStr = jobDateStr || estimateDateStr; // Use whichever is available
+                    
                     const date = parseDate(dateStr);
                     return date && date.getFullYear() === year;
                 });
@@ -1207,36 +1215,51 @@
 
         function displayKPIMetrics() {
             // Calculate Close Ratio from Estimate Status column (AI)
-            // IMPORTANT: Close ratio should count ALL estimates in the period, not just completed jobs
+            // Statuses: "Won", "Lost", "Sent", "Draft"
+            // Close Ratio = Won / (Won + Lost) - excludes Sent and Draft as they're pending
             let wonCount = 0;
             let lostCount = 0;
+            let sentCount = 0;
+            let draftCount = 0;
             
-            // We need to check ALL data in the date range, not just costAnalysisData
-            // because costAnalysisData might only contain completed jobs
+            // Use all data filtered by date range (includes estimates that aren't jobs yet)
             const dateFilteredData = filterDataByDateRange(allCostAnalysisData);
             
-            dateFilteredData.forEach(job => {
+            dateFilteredData.forEach((job, index) => {
                 const estimateStatus = (job['Estimate Status'] || '').toLowerCase().trim();
                 
                 // Debug: Log first few to see what we're getting
-                if (wonCount + lostCount < 5) {
-                    console.log('Estimate Status:', estimateStatus, '| Job Date:', job['Job Date']);
+                if (index < 5) {
+                    console.log(`Row ${index + 1}:`, {
+                        'Estimate Status': job['Estimate Status'],
+                        'Job Date': job['Job Date'],
+                        'Estimate Date': job['Estimate Date'],
+                        'Client': job['Client Name']
+                    });
                 }
                 
                 if (estimateStatus === 'won') {
                     wonCount++;
                 } else if (estimateStatus === 'lost') {
                     lostCount++;
+                } else if (estimateStatus === 'sent') {
+                    sentCount++;
+                } else if (estimateStatus === 'draft') {
+                    draftCount++;
                 }
             });
             
-            const totalEstimates = wonCount + lostCount;
-            const closeRatio = totalEstimates > 0 ? (wonCount / totalEstimates) * 100 : 0;
+            // Close Ratio = Won estimates / Closed estimates (Won + Lost)
+            // Excludes Sent and Draft because they're still pending
+            const closedEstimates = wonCount + lostCount;
+            const closeRatio = closedEstimates > 0 ? (wonCount / closedEstimates) * 100 : 0;
             
             console.log('📊 Close Ratio Debug:', {
                 'Won': wonCount,
                 'Lost': lostCount,
-                'Total Estimates': totalEstimates,
+                'Sent (Pending)': sentCount,
+                'Draft (Pending)': draftCount,
+                'Closed Estimates': closedEstimates,
                 'Close Ratio': closeRatio.toFixed(1) + '%',
                 'Period': currentPeriodLabel,
                 'Total Rows Checked': dateFilteredData.length
@@ -1306,8 +1329,8 @@
                         <span class="metric-icon">🎯</span>
                     </div>
                     <div class="metric-value">${formatPercent(closeRatio)}</div>
-                    <div class="metric-subtitle">${wonCount} Won / ${lostCount} Lost (${totalEstimates} total)</div>
-                    <div class="metric-definition">Percentage of estimates converted to jobs</div>
+                    <div class="metric-subtitle">${wonCount} Won / ${lostCount} Lost${sentCount > 0 || draftCount > 0 ? ` (${sentCount} Sent, ${draftCount} Draft)` : ''}</div>
+                    <div class="metric-definition">Win rate on closed estimates (Won + Lost)</div>
                     <div class="metric-definition" style="border-top:none; padding-top:5px; font-weight:600; color:var(--operations-blue);">📅 ${currentPeriodLabel}</div>
                     <div class="metric-badge ${closeRatio >= 50 ? 'badge-excellent' : closeRatio >= 30 ? 'badge-good' : 'badge-warning'}">
                         ${closeRatio >= 50 ? '🔥 Excellent' : closeRatio >= 30 ? '✓ Good' : '⚠️ Needs Improvement'}
